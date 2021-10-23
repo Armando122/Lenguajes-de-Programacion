@@ -23,6 +23,15 @@
     [(paralelogramo a b h) (* 2 (+ a b))])
   )
 
+;;Función que dada una figura calcule el área
+;;de ésta.
+;;area: Figura -> number
+(define (area f)
+  (match f
+    [(rombo a D d) (/ (* D d) 2)]
+    [(paralelogramo a b h) (* b h)])
+  )
+
 
 ;;Función que dada una figura regrese su perímetro.
 ;;perimetro: Figura -> number
