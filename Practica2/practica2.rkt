@@ -1,6 +1,6 @@
 #lang plai
 ;;Propuesta de distribución
-;; Armando - 1. Rombo y paralelogramo, area y perimetro para esas figuras. 2.Vagon, pasjaeros.
+;; Armando - 1. area para esas figuras. 2.Vagon, pasjaeros.
 ;; Liprandi - 1. triangulo, cuadrado, rectangulo, area y perimetro de esa fugras. 2. peso-carbon, peso-aproximado
 ;;Sebastian - 1. circulo, elipse, area y permietro. 2. tren, sin-cama
 
@@ -13,6 +13,15 @@
 (define-type Figura
   [rombo (a number?) (D number?) (d number?)]
   [paralelogramo (a number?) (b number?) (h number?)])
+
+;;Función que dada una Figura regresa el perímetro
+;;de esta.
+;;perimetro: Figura -> number
+(define (perimetro f)
+  (match f
+    [(rombo a D d) (* a 4)]
+    [(paralelogramo a b h) (* 2 (+ a b))])
+  )
 
 
 ;;Función que dada una figura regrese su perímetro.
