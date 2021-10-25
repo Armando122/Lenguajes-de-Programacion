@@ -12,7 +12,10 @@
 ;;              representan los lados y altura.
 (define-type Figura
   [rombo (a number?) (D number?) (d number?)]
-  [paralelogramo (a number?) (b number?) (h number?)])
+  [paralelogramo (a number?) (b number?) (h number?)]
+  [triangulo (a number?) (b number?) (c number?)]
+  [cuadrado (a number?)]
+  [rectangulo (a number?) (b number?)])
 
 ;;Función que dada una Figura regresa el perímetro
 ;;de esta.
@@ -20,7 +23,10 @@
 (define (perimetro f)
   (match f
     [(rombo a D d) (* a 4)]
-    [(paralelogramo a b h) (* 2 (+ a b))])
+    [(paralelogramo a b h) (* 2 (+ a b))]
+    [(triangulo a b c) (+ a b c)]
+    [(cuadrado a) (* a 4)]
+    [(rectangulo a b) (+ (* a 2) (* b 2))])
   )
 
 ;;Función que dada una figura calcule el área
@@ -29,7 +35,18 @@
 (define (area f)
   (match f
     [(rombo a D d) (/ (* D d) 2)]
-    [(paralelogramo a b h) (* b h)])
+    [(paralelogramo a b h) (* b h)]
+    [(triangulo a b c) (let ([s (semip f)]) (sqrt (* s (- s a) (- s b) (- s c))))]
+    [(cuadrado a) (* a a)]
+    [(rectangulo a b) (* a b)]
+    )
+  )
+
+;;Función auxiliar
+;;Calcula el semiperimetro de un triángulo
+;; semip: Figura -> number
+(define (semip f)
+  (/ (perimetro f) 2) 
   )
 
 ;;Tipo de dato asbtacto vagon.
