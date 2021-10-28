@@ -15,7 +15,10 @@
   [paralelogramo (a number?) (b number?) (h number?)]
   [triangulo (a number?) (b number?) (c number?)]
   [cuadrado (a number?)]
+  [circulo (d number?)]
+  [elipse (a number?) (b number?)]
   [rectangulo (a number?) (b number?)])
+  
 
 ;;Función que dada una Figura regresa el perímetro
 ;;de esta.
@@ -27,6 +30,8 @@
     [(triangulo a b c) (+ a b c)]
     [(cuadrado a) (* a 4)]
     [(rectangulo a b) (+ (* a 2) (* b 2))])
+    [(circulo d) ( * (* 2 pi) (/ d 2))]
+    [(elipse a b) (* (* 2 pi) (/ (+ (expt a 2) (expt b 2)) (2) ))]
   )
 
 ;;Función que dada una figura calcule el área
@@ -39,6 +44,8 @@
     [(triangulo a b c) (let ([s (semip f)]) (sqrt (* s (- s a) (- s b) (- s c))))]
     [(cuadrado a) (* a a)]
     [(rectangulo a b) (* a b)]
+    [(circulo d) (* pi (expt (/ d 2) (2)))]
+    [(elipse a b) (* pi (* a b))]
     )
   )
 
