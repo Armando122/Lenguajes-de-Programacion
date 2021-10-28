@@ -1,5 +1,6 @@
 #lang plai
 ;;Propuesta de distribución
+;; Armando - 2.pasjaeros.
 ;; Liprandi - 1. triangulo, cuadrado, rectangulo, area y perimetro de esa fugras. 2. peso-carbon, peso-aproximado
 ;;Sebastian - 1. circulo, elipse, area y permietro. 2. tren, sin-cama
 
@@ -76,3 +77,18 @@
         [_ (pasajeros (cdr t))])
    )
   )
+
+(define-type Tren
+  [tren (cabeza vagon-locomotora?) (l ListaCuerpo?) (cola vagon-locomotora?)]
+  )
+
+(define (noLocomotora? v)
+  (and (Vagon? v) (not (vagon-locomotora? v)))
+  )
+
+(define (ListaCuerpo? l)
+  (match l
+    [(cons x '()) (noLocomotora? x)]
+    [(cons x xs) (and (noLocomotora? x) (ListaCuerpo? xs))])
+  )
+
