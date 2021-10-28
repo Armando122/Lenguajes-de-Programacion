@@ -29,9 +29,9 @@
     [(paralelogramo a b h) (* 2 (+ a b))]
     [(triangulo a b c) (+ a b c)]
     [(cuadrado a) (* a 4)]
-    [(rectangulo a b) (+ (* a 2) (* b 2))])
+    [(rectangulo a b) (+ (* a 2) (* b 2))]
     [(circulo d) ( * (* 2 pi) (/ d 2))]
-    [(elipse a b) (* (* 2 pi) (/ (+ (expt a 2) (expt b 2)) (2) ))]
+    [(elipse a b) (* (* 2 pi) (/ (+ (expt a 2) (expt b 2)) (2) ))])
   )
 
 ;;Función que dada una figura calcule el área
@@ -125,6 +125,7 @@
   (match v
     [(vagon-locomotora p) p]
     [(vagon-carga p) p]
+    [_ 0]
     )
   )
 
@@ -133,8 +134,21 @@
 (define (peso-aproximado t)
   (match t
     [(tren cabeza l cola) (let* ([p (pasajeros t)]
-                                 [c (peso-carbon t)])
-                            (+ (* p 73) c))]
+                                 [c (peso-carbon t)]
+                                 [e (peso-equipaje t)])
+                            (+ (* p 73) c e))]
+    )
+  )
+
+;Auxiliar
+;Equipaje de un tren
+; peso-equipaje: Tren -> number
+(define (peso-equipaje t)
+  (match t
+    [(tren cabeza l cola) (match l
+                            [(cons x '()) (peso x)]
+                            [(cons x xs) (+ (peso x) (peso-equipaje (tren cabeza xs cola)))]
+                            )]
     )
   )
 
