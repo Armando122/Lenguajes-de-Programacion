@@ -1,6 +1,5 @@
 #lang plai
 ;;Propuesta de distribución
-;; Armando - 2.pasjaeros.
 ;; Liprandi - 1. triangulo, cuadrado, rectangulo, area y perimetro de esa fugras. 2. peso-carbon, peso-aproximado
 ;;Sebastian - 1. circulo, elipse, area y permietro. 2. tren, sin-cama
 
@@ -66,3 +65,14 @@
   [vagon-restaurante (mesas number?) (meseros number?)]
   [vagon-dormitorio (camas number?)]
   [vagon-carga (p number?)])
+
+;;Función pasajeros que obtiene el número total de pasajeros.
+;; pasajeros: Tren -> number
+(define (pasajeros t)
+  (if (empty? t)
+      0
+      (match (first t)
+        [(vagon-simple a b) (+ b (pasajeros (cdr t)))]
+        [_ (pasajeros (cdr t))])
+   )
+  )
