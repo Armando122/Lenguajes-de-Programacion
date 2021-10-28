@@ -1,6 +1,5 @@
 #lang plai
 ;;Propuesta de distribución
-;; Armando - 2.pasjaeros.
 ;; Liprandi - 1. triangulo, cuadrado, rectangulo, area y perimetro de esa fugras. 2. peso-carbon, peso-aproximado
 ;;Sebastian - 1. circulo, elipse, area y permietro. 2. tren, sin-cama
 
@@ -15,7 +14,10 @@
   [paralelogramo (a number?) (b number?) (h number?)]
   [triangulo (a number?) (b number?) (c number?)]
   [cuadrado (a number?)]
+  [circulo (d number?)]
+  [elipse (a number?) (b number?)]
   [rectangulo (a number?) (b number?)])
+  
 
 ;;Función que dada una Figura regresa el perímetro
 ;;de esta.
@@ -27,6 +29,8 @@
     [(triangulo a b c) (+ a b c)]
     [(cuadrado a) (* a 4)]
     [(rectangulo a b) (+ (* a 2) (* b 2))])
+    [(circulo d) ( * (* 2 pi) (/ d 2))]
+    [(elipse a b) (* (* 2 pi) (/ (+ (expt a 2) (expt b 2)) (2) ))]
   )
 
 ;;Función que dada una figura calcule el área
@@ -39,6 +43,8 @@
     [(triangulo a b c) (let ([s (semip f)]) (sqrt (* s (- s a) (- s b) (- s c))))]
     [(cuadrado a) (* a a)]
     [(rectangulo a b) (* a b)]
+    [(circulo d) (* pi (expt (/ d 2) (2)))]
+    [(elipse a b) (* pi (* a b))]
     )
   )
 
@@ -77,23 +83,3 @@
         [_ (pasajeros (cdr t))])
    )
   )
-
-;;Tipo Tren
-(define-type Tren
-  [tren (cabeza vagon-locomotora?) (l ListaCuerpo?) (cola vagon-locomotora?)]
-  )
-
-;Predicado para identificar vagones que no sean Locomotoras
-(define (noLocomotora? v)
-  (and (Vagon? v) (not (vagon-locomotora? v)))
-  )
-
-;;Predicado para identificar lista con sólo vagones que no sean locomotoras
-(define (ListaCuerpo? l)
-  (match l
-    [(cons x '()) (noLocomotora? x)]
-    [(cons x xs) (and (noLocomotora? x) (ListaCuerpo? xs))])
-  )
-
-
-
