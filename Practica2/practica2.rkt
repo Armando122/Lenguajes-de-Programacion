@@ -67,17 +67,6 @@
   [vagon-dormitorio (camas number?)]
   [vagon-carga (p number?)])
 
-;;Función pasajeros que obtiene el número total de pasajeros.
-;; pasajeros: Tren -> number
-(define (pasajeros t)
-  (if (empty? t)
-      0
-      (match (first t)
-        [(vagon-simple a b) (+ b (pasajeros (cdr t)))]
-        [_ (pasajeros (cdr t))])
-   )
-  )
-
 ;;Tipo Tren
 (define-type Tren
   [tren (cabeza vagon-locomotora?) (l ListaCuerpo?) (cola vagon-locomotora?)]
@@ -95,5 +84,50 @@
     [(cons x xs) (and (noLocomotora? x) (ListaCuerpo? xs))])
   )
 
+;;Función pasajeros que obtiene el número total de pasajeros.
+;; pasajeros: Tren -> number
+(define (pasajeros t)
+  (match t
+    [(tren cabeza l cola) (match l
+                            [(cons x '()) (pasajeros-vagon x)]
+                            [(cons x xs) (+ (pasajeros-vagon x) (pasajeros (tren cabeza xs cola)))])]
+    )
+  )
 
+;Auxiliar
+; pasajeros-vagon: Vagon -> number
+(define (pasajeros-vagon v)
+  (match v
+    [(vagon-simple pa ca) ca]
+    [_ 0]
+    )
+  )
+
+;Peso del carbon en el tren
+; peso-carbon: Tren -> number
+(define (peso-carbon t)
+  (match t
+    [(tren cabeza l cola) (+ (peso cabeza) (peso cola))]
+    )
+  )
+
+;Auxiliar
+;Da el peso de un vagon
+; peso: Vagon -> number
+(define (peso v)
+  (match v
+    [(vagon-locomotora p) p]
+    [(vagon-carga p) p]
+    )
+  )
+
+;Peso aproximado del tren
+; peso-aproximado: Tren -> number
+(define (peso-aproximado t)
+  (match t
+    [(tren cabeza l cola) (let* ([p (pasajeros t)]
+                                 [c (peso-carbon t)])
+                            (+ (* p 73) c))]
+    )
+  )
 
