@@ -78,17 +78,22 @@
    )
   )
 
+;;Tipo Tren
 (define-type Tren
   [tren (cabeza vagon-locomotora?) (l ListaCuerpo?) (cola vagon-locomotora?)]
   )
 
+;Predicado para identificar vagones que no sean Locomotoras
 (define (noLocomotora? v)
   (and (Vagon? v) (not (vagon-locomotora? v)))
   )
 
+;;Predicado para identificar lista con sólo vagones que no sean locomotoras
 (define (ListaCuerpo? l)
   (match l
     [(cons x '()) (noLocomotora? x)]
     [(cons x xs) (and (noLocomotora? x) (ListaCuerpo? xs))])
   )
+
+
 
