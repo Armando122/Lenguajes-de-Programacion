@@ -22,6 +22,7 @@
     [(? symbol?) (id sexp)]
     [(? number?) (num sexp)]
     [(list 'with idvalues body) (with (crearBindings idvalues) (parse body))]
+    [(list 'with* idvalues body) (with* (crearBindings idvalues) (parse body))]
     [(cons s args) (op (elige s) (map parse args))]
     )
   )
@@ -29,7 +30,7 @@
 (define (crearBindings l)
   (match l
     ['() '()]
-    [(cons x xs) (cons (binding (car x) (parse (cdr x))) crearBindings xs)]
+    [(cons x xs) (cons (binding (car x) (parse (cadr x))) (crearBindings xs))]
     )
   )
  
