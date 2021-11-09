@@ -65,5 +65,59 @@
  ;;Análisis semántico
  ;;interp: AST → number
 (define (interp expr)
-  "escribe aquí tu codigo")
+    (type-case AST expr
+    [id (i) (error "Error Free Variable:" i)]
+    [num (n) n]
+    [op (p l) (let ([operands (for/list ([i l]) (cond
+                                                    [(num? i) (num-n i)]
+                                                    [(AST? i) (interp i)]
+                                                    [else i]))])
+                (apply p operands))]
+    [with (bindings body) (interp (subst-with body (remove-duplicates (reverse bindings))))]
+    [with* (bindings body) (if (id? (binding-value (car bindings)))
+                               (error "Variable " (binding-id (car bindings)) "not defined.")
+                               (interp (subst-with body (clean-bindings bindings))))]))
+
+
+;; Función auxiliar que prepara una lista de bindings de with*
+;; clean-bindings: (list-of binding) -> (list-of Binding)
+(define (clean-bindings bindings)
+  (remove-duplicates
+   (append (subst-bindings (cdr bindings) (list (car bindings)))
+           (list (car bindings)))))
+
+
+;; Función auxiliar que sustitye de forma recursiva todos los valores dentro de la
+;; lista de bindings que recibe with* y los reacomoda en orden inverso
+;; subst-bindings: AST (list-of binding) -> AST
+(define (subst-bindings pending ready)
+  (cond
+    [(empty? pending) ready]
+    [(let* ([first-binding (car pending)]
+            [first-binding-value (binding-value first-binding)]
+            [subst-value (subst-with first-binding-value ready)]
+            [new-binding (binding (binding-id first-binding) subst-value)])
+       (if (id? subst-value)
+           (error "Variable " (id-i subst-value) "not defined")
+           (subst-bindings (cdr pending) (append (list new-binding) ready))))]))
+
+
+;; Función auxiliar para eliminar los bindings con id duplicadas
+;; (Nos quedamos con las primeras apariciones solamente)
+;; remove-duplicates: (list-of binding) -> (list-of binding)
+(define (remove-duplicates bindings)
+  (foldr (lambda (x y) (cons x (filter (lambda (z) (not (equal? (binding-id x) (binding-id z)))) y)))
+         empty
+         bindings))
+
+;; Función auxiliar que sustituye todas las apariciones de identificadores
+;; dentro de una expresión con los elementos contenidos en la lista de bindings
+;; subst-with: AST (list-of Binding) -> AST
+(define (subst-with body bindings)
+  (cond
+    [(empty? bindings) body]
+    [(subst-with (subst body
+                       (binding-id (car bindings))
+                       (binding-value (car bindings)))
+                (cdr bindings))]))
 
