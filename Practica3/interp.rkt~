@@ -14,16 +14,16 @@
     [op (ope list) (op ope (subst-op list sub-id value))]
     [with (list-bin body) (if (busca-id list-bin sub-id)
                               (with
-                               (subst-with1 list-bin sub-id value) body)
+                               (subst-with list-bin sub-id value) body)
                               (with
-                               (subst-with1 list-bin sub-id value)
+                               (subst-with list-bin sub-id value)
                                (subst body sub-id value))
                               )]
     [with* (list-bin body) (if (busca-id list-bin sub-id)
                               (with*
-                               (subst-with1 list-bin sub-id value) body)
+                               (subst-with list-bin sub-id value) body)
                               (with*
-                               (subst-with1 list-bin sub-id value)
+                               (subst-with list-bin sub-id value)
                                (subst body sub-id value))
                               )])
   )
@@ -48,16 +48,16 @@
     [else (busca-id (cdr l) sub-id)])
   )
 
-;;Función subst-with1, realiza la sustitución sobre
+;;Función subst-with, realiza la sustitución sobre
 ;;los argumentos de la expresión with.
-;;subst-with1: listof-binding symbol AST -> listof-binding
-(define (subst-with1 l sub-id value)
+;;subst-with: listof-binding symbol AST -> listof-binding
+(define (subst-with l sub-id value)
   (cond
     [(empty? l) empty]
     [else (cons
       (binding (binding-id (first l))
                (subst (binding-value (first l)) sub-id value))
-      (subst-with1 (cdr l) sub-id value))])
+      (subst-with (cdr l) sub-id value))])
   )
 
 
