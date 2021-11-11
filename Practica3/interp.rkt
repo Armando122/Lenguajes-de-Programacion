@@ -61,12 +61,11 @@
   )
 
 
-
  ;;Análisis semántico
  ;;interp: AST → number
 (define (interp expr)
     (type-case AST expr
-    [id (i) (error "Error Free Variable:" i)]
+    [id (i) (error "Variable libre")]
     [num (n) n]
     [op (p l) (let ([operands (for/list ([i l]) (cond
                                                     [(num? i) (num-n i)]
