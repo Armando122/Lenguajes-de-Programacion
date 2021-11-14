@@ -14,14 +14,14 @@
     [op (ope list) (op ope (subst-op list sub-id value))]
     [with (list-bin body) (if (busca-id list-bin sub-id)
                               (with
-                               (subst-with1 list-bin sub-id value) body)
+                               (subst-with2 list-bin sub-id value) body)
                               (with
                                (subst-with1 list-bin sub-id value)
                                (subst body sub-id value))
                               )]
     [with* (list-bin body) (if (busca-id list-bin sub-id)
                               (with*
-                               (subst-with1 list-bin sub-id value) body)
+                               (subst-with2 list-bin sub-id value) body)
                               (with*
                                (subst-with1 list-bin sub-id value)
                                (subst body sub-id value))
@@ -60,6 +60,24 @@
       (subst-with1 (cdr l) sub-id value))])
   )
 
+;;Función subst-with2, realiza la sustitución sobre
+;;los argumentos de la expresión with.
+;;subst-with2: listof-binding symbol AST -> listof-binding
+(define (subst-with2 l sub-id value)
+  (cond
+    [(empty? l) empty]
+    [(symbol=?
+      (binding-id (first l))
+      sub-id)
+     (cons
+      (binding (binding-id (first l))
+               (subst (binding-value (first l)) sub-id value))
+      (cdr l))]
+    [else (cons
+      (first l)
+      (subst-with2 (cdr l) sub-id value))])
+  )
+
 
  ;;Análisis semántico
  ;;interp: AST → number
@@ -72,7 +90,7 @@
                                                     [(AST? i) (interp i)]
                                                     [else i]))])
                 (apply p operands))]
-    [with (bindings body) (interp (subst-with body (remove-duplicates (reverse bindings))))]
+    [with (bindings body) (interp (subst-with body (remove-duplicates bindings)))]
     [with* (bindings body) (if (id? (binding-value (car bindings)))
                                (error "Variable " (binding-id (car bindings)) "not defined.")
                                (interp (subst-with body (clean-bindings bindings))))]))
