@@ -78,6 +78,25 @@
       (subst-with2 (cdr l) sub-id value))])
   )
 
+;;Función subst-with3, realiza la sustitución sobre
+;;los argumentos de la expresión with*.
+;;subst-with3: listof-binding symbol AST -> listof-binding
+(define (subst-with3 l sub-id value)
+  (cond
+    [(empty? l) empty]
+    [(symbol=?
+      (binding-id (first l))
+      sub-id)
+     (cons
+      (binding (binding-id (first l))
+               (subst (binding-value (first l)) sub-id value))
+      (cdr l))]
+    [else (cons
+      (binding (binding-id (first l))
+               (subst (binding-value (first l)) sub-id value))
+      (subst-with3 (cdr l) sub-id value))])
+  )
+
 
  ;;Análisis semántico
  ;;interp: AST → number
