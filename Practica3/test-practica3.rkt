@@ -74,7 +74,7 @@
 (test (subst (parse expr12) 'b (num 2)) (parse expr12))
 (test (subst (parse expr13) 'foo (num 2)) (parse expr13))
 (test (subst (parse expr13) 'a (num 2)) 
-   (with* (list (binding 'a (num 2)) (binding 'b (op + (list (num 2) (num 2))))) (id 'b)))
+   (with* (list (binding 'a (num 2)) (binding 'b (op + (list (id 'a) (id 'a))))) (id 'b)))
 (test (subst (parse expr13) 'b (num 2)) (parse expr13))
 (test (subst (parse expr14) 'a (num 2)) (with (list (binding 'a (num 2))) (id 'a)))
 (test (subst (parse expr15) 'a (num 2)) (with (list (binding 'b (num 2))) (num 2)))

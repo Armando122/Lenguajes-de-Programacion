@@ -14,7 +14,7 @@
     [op (ope list) (op ope (subst-op list sub-id value))]
     [with (list-bin body) (if (busca-id list-bin sub-id)
                               (with
-                               (subst-with2 list-bin sub-id value) body)
+                               (subst-with1 list-bin sub-id value) body)
                               (with
                                (subst-with1 list-bin sub-id value)
                                (subst body sub-id value))
