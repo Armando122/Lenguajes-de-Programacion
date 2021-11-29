@@ -7,7 +7,8 @@
 ;; desugar: SAST → AST
 (define (desugar expr)
   (match expr
-    [(list 'withS idvalues body) (desugar-withS idvalues body)])
+    [(list 'withS idvalues body) (desugar-withS idvalues body)]
+    [(list 'withS* idvalues body) (separa-withS idvalues body)])
   )
 
 
@@ -22,3 +23,15 @@
                (desugar-withS (cdr idvalues) body))
           (binding-value (first idvalues)))])
   )
+
+;; Función auxiliar que separa una expresión
+;; withS* en expresiones withS anidadas.
+;; separa-withS: listof-binding SAST -> SAST
+(define (separa-withS idvalues body)
+  (match idvalues
+    [empty body]
+    [else
+     (withS (first idvalues)
+            (separa-withS (cdr idvalues body)))])
+  )
+
