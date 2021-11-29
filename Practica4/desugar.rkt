@@ -6,32 +6,32 @@
 ;; Elimina el azúcar sintáctica de las expresiones FWAE.
 ;; desugar: SAST → AST
 (define (desugar expr)
-  (match expr
-    [(list 'withS idvalues body) (desugar-withS idvalues body)]
-    [(list 'withS* idvalues body) (separa-withS idvalues body)])
+  (type-case SAST expr
+    [idS (i) (id i)]
+    [numS (n) (num n)]
+    [opS (operator list) (op operator list)]
+    [withS (list-bin body) (desugar-withS list-bin body list-bin)])
   )
 
 
 ;; Función auxiliar que convierte los valores de una
 ;; expresión withS en funciones currificadas.
-;; desugar-withS: litof-binding SAST -> AST
-(define (desugar-withS idvalues body)
+;; desugar-withS: litof-binding SAST listof-binding -> AST
+(define (desugar-withS idvalues body values)
+  (match values
+    [empty (desugar-withS1 idvalues body)]
+    [else
+     (app (desugar-withS idvalues body (cdr values))
+          (desugar (binding-value (first values))))])
+  )
+
+;; Función auxiliar que convierte una lista de binding
+;; en funciones.
+;; desugar-withS1: listof-binding AST -> AST
+(define (desugar-withS1 idvalues body)
   (match idvalues
     [empty (desugar body)]
     [else
-     (app (fun (binding-id (first idvalues))
-               (desugar-withS (cdr idvalues) body))
-          (binding-value (first idvalues)))])
+     (fun (binding-id (first idvalues))
+          (desugar-withS1 (cdr idvalues) body))])
   )
-
-;; Función auxiliar que separa una expresión
-;; withS* en expresiones withS anidadas.
-;; separa-withS: listof-binding SAST -> SAST
-(define (separa-withS idvalues body)
-  (match idvalues
-    [empty body]
-    [else
-     (withS (first idvalues)
-            (separa-withS (cdr idvalues body)))])
-  )
-
