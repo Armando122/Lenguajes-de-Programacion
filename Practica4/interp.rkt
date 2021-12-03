@@ -21,7 +21,12 @@
     [num (n) (numV n)]
     [op (f args) (interp-op f (for/list ([i args]) (convers (interp i env))))]
     [fun (p b) (closureV p b env)]
-    [app (f arg) (interp-app f arg env)]))
+    [app (fn ap) (let ([fun-val (interp fn env)])
+                   (interp (closureV-body fun-val)
+                           (aSub (closureV-param fun-val)
+                           (interp ap env)
+                           (closureV-env fun-val))))]
+     ))
 
 ;;Un conversor de AST-Value a AST.
 (define (convers v)
@@ -36,10 +41,3 @@
       [(= n 1) (numV (f (first lst)))]
       [(= n 2) (numV (f (first lst) (second lst)))]
       [else   (numV (apply f lst))])))
-
-;;Nos permite interpretar las aplicaciones de funcion.
-(define (interp-app f a env)
-  (type-case AST f
-    [fun (p b) (interp b ((reverse p) (reverse (for/list ([i a]) (interp i env))) env))]
-    [id (i) (interp (app (convers (lookup i env)) a) (convers (lookup i env)))]
-    [else (error "interapp: Esto no debio pasar")]))
