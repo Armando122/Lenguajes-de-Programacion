@@ -10,7 +10,9 @@
     [idS (i) (id i)]
     [numS (n) (num n)]
     [boolS (b) (bool b)]
-    [ifS (test-exp then-exp else-exp) (iF test-exp then-exp else-exp)]
+    [ifS (test-exp then-exp else-exp) (iF (desugar test-exp)
+                                          (desugar then-exp)
+                                          (desugar else-exp))]
     [condS (list-cond) (desugar-cond list-cond)]
     [withS (list-bin body)
            (let* ([n-body (desugar body)]
@@ -34,8 +36,8 @@
      (desugar (else-cond-else-expr (car conditions)))]
     [else
      (iF
-      (desugar (cond-test-expr (car conditions)))
-      (desugar (cond-then-expr (car conditions)))
+      (desugar (condition-test-expr (car conditions)))
+      (desugar (condition-then-expr (car conditions)))
       (desugar-cond (cdr conditions)))]
     )
   )
