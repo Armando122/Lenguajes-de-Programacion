@@ -25,7 +25,7 @@
 ;; Análisis semántico
 ;; interp: AST Env → AST-Value
 (define (interp expr env)
-    (type-case CFWBAE expr
+    (type-case AST expr
     [id (i) (lookup i env)]
     [num (n) (numV n)]
     [bool (b) (boolV b)]
@@ -33,8 +33,12 @@
     [iF (c t e) (if (erroriF-aux (cc (interp c env)))
                      (interp t env)
                      (interp e env))]
-    [fun (p b) (closure p b env)]
-    [app (f arg) (interp-app f arg env)]))
+    [fun (p b) (closureV p b env)]
+    [app (func vals)
+         (let* ([f (interp func)]
+                [env (closureV-env f)]
+                [new-ds (append-params (closureV-param f) vals env env)])
+               (interp (closureV-body f) new-ds))]))
     
     ;;Funcion auxiliar que nos permite interpretar las operaciones.
 (define (interp-op f lst)
@@ -51,14 +55,17 @@
     
     ;;Convierte CFWAE-Value a CFWAE.
 (define (cc v)
-  (type-case CFWBAE-Value v
-    [closure (p d e) (fun p d)]
+  (type-case AST-Value v
+    [closureV (p d e) (fun p d)]
+    [numV (n) n]
+    [exprV (expr xp) expr]
+    [boolV (b) b]))
     
     ;;Nos permite interpretar las aplicaciones de funcion.
-(define (interp-app f a ds)
-  (type-case CFWBAE f
-    [fun (p b) (interp b (def (reverse p) (reverse (for/list ([i a]) (interp i ds))) ds))]
-    [id (i) (interp (app (cc (lookup i ds)) a) (cs (lookup i ds)))]
+(define (interp-app f a env)
+  (type-case AST f
+    [fun (p b) (interp b (def (reverse p) (reverse (for/list ([i a]) (interp i env))) env))]
+    [id (i) (interp (app (cc (lookup i env)) a) (cs (lookup i env)))]
     [else (error "interapp: Esto no debio pasar")]))
     
     ;;Funcion que nos permite agregar a al "cache de sustituciones" nuevos elementos.
@@ -67,9 +74,7 @@
       ds
       (aSub (car p) (car a) (def (cdr p) (cdr a) ds))))
       
-      
-    [numV (n) n]
-    [boolV (b) b]))
+     
     
     ;;Nos ayuda a detectar si a un iF se le ha pasado un valor booleano o no.
 (define (erroriF-aux n)
@@ -79,8 +84,8 @@
       
      ;;Nos permite extraer el "cache de sustitucion" de un closure.
 (define (cs v)
-  (type-case CFWBAE-Value v
-    [closure (p d e) e]
+  (type-case AST-Value v
+    [closureV (p d e) e]
     [else error "cs: Esto no debio pasar"]))
     
     ;;Funcion auxiliar que nos permite interpretar las operaciones que devuelven numeros.
@@ -98,3 +103,8 @@
       [(= n 1) (boolV (f (first lst)))]
       [(= n 2) (boolV (f (first lst) (second lst)))]
       [else   (boolV (apply f lst))])))
+
+(define (append-params params vals ds new-ds)
+  (if (empty? params)
+      new-ds
+      (append-params (cdr params) (cdr vals) ds (aSub (car params) (interp (car vals) ds) new-ds))))
