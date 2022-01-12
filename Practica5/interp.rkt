@@ -1,10 +1,7 @@
 #lang plai
-
 (require "grammars.rkt")
-(require "parser.rkt")
-(require "desugar.rkt")
 ;; Búsqueda en el ambiente de evaluación.
-;; lookup: symbol Env → AST
+;, lookup: symbol Env → AST
 (define (lookup sub-id env)
    (match env
       [(mtSub) 
@@ -13,80 +10,85 @@
          (if (symbol=? id sub-id)
              value
              (lookup sub-id rest-env))]))
-
-;; Aplicación de puntos estrictos.
-;; strict: AST-Value → AST-Value
-(define (strict expr)
-   (match expr
-      [(exprV expr env) (strict (interp expr env))]
-      [else expr]))
-
-
 ;; Análisis semántico
 ;; interp: AST Env → AST-Value
 (define (interp expr env)
-     (type-case AST expr
-    [id (i) (strict (lookup i env))]
+   (type-case AST expr
+    [id (i) (lookup i env)]
     [num (n) (numV n)]
-    [bool (b) (boolV b)]                                                    
-    [op (p l) (let ([operands (for/list ([i l]) (cond
-                                                  [(num? i) (numV (num-n i))]
-                                                  [(AST? i) (interp i env)]
-                                                  [else i]))])
-                (numV (apply p (map numV-n operands))))]
-    [iF (cond then-val else-val)
-        (if (strict (interp cond env))
-            (interp then-val env)
-            (interp else-val env)
-          )]
-         ;;(let ([c (interp cond env)])
-           ;;(if (numV? c)
-             ;;  (if (= 0 (numV-n c))
-               ;;    (interp then-val env)
-                 ;;  (interp else-val env))
-               ;;(error 'interp "Símbolo no esperado la condicional de if, no es un número")))]
-    [fun (params body)
-         (closureV params body env)]
-    [app (func vals)
-         (let* ([fun-val (strict (interp func env))]
-                [symb-fun (closureV-param fun-val)]
-                [n-expr (exprV vals env)]
-                [rest-e (closureV-env fun-val)]
-                [sub-env (aSub symb-fun n-expr rest-e)]
-                [new-env (append sub-env env)])
-           (interp (closureV-body fun-val)
-                   new-env))
-           
-         ;;(let* ([f (interp func env)]
-           ;;     [env-new (closureV-env f)]
-             ;;   [new-ds (append-params (closureV-param f) vals env env-new)])
-               ;;(interp (closureV-body f) new-ds))]))
-         ]))
+    [bool (b) (boolV b)]
+    [op (f args) (interp-op f (for/list ([i args]) (cc (interp i env))))]
+    [iF (c t e) (if (erroriF-aux (cc (interp c env)))
+                     (interp t env)
+                     (interp e env))]
+    [fun (p b) (closureV p b env)]
+    [app (fn ap) (let ([fun-val (interp fn env)])
+                   (interp (closureV-body fun-val)
+                           (aSub (closureV-param fun-val)
+                           (interp ap env)
+                           (closureV-env fun-val))))]
+     ))
+     
+;;Funcion auxiliar que nos permite interpretar las operaciones.
+(define (interp-op f lst)
+  (cond
+    [(equal? f +) (interp-op-num f lst)]
+    [(equal? f -) (interp-op-num f lst)]
+    [(equal? f /) (interp-op-num f lst)]
+    [(equal? f *) (interp-op-num f lst)]
+    [(equal? f sub1) (interp-op-num f lst)]
+    [(equal? f add1) (interp-op-num f lst)]
+    [(equal? f modulo) (interp-op-num f lst)]
+    [(equal? f expt) (interp-op-num f lst)]
+    [else (interp-op-bool f lst)]))
 
+    ;;Convierte CFWAE-Value a CFWAE.
+(define (cc v)
+  (type-case AST-Value v
+    [closureV (p d e) (fun p d)]
+    [numV (n) n]
+    [exprV (expr xp) expr]
+    [boolV (b) b]))
 
-;; append
-(define (append env1 env2)
-    (cond
-      [(equal? (mtSub) env2) env1]
-      [else
-       (aSub (aSub-id env2) (aSub-value env2)
-             (append env1 (aSub-rest-env env2)))]))
+    ;;Nos permite interpretar las aplicaciones de funcion.
+(define (interp-app f a env)
+  (type-case AST f
+    [fun (p b) (interp b (def (reverse p) (reverse (for/list ([i a]) (interp i env))) env))]
+    [id (i) (interp (app (cc (lookup i env)) a) (cs (lookup i env)))]
+    [else (error "interapp: Esto no debio pasar")]))
 
-;; Función auxiliar para agregar los valores de los parámetros de una función al caché.
-;; Recibe una lista con los parámetros reales, una lista con los respectivos parámetros
-;; reales, el caché antes de que agregen los parámetros que usamos para interpretar los
-;; parámetros reales y un caché donde se irán almecenando los parámetros.
-;; append-params: (list-of symbols) (list-of CFWAE) DefrdSub DefrdSub ­-> DefrdSub
-(define (append-params params vals ds new-ds)
-  (if (empty? params)
-      new-ds
-      (append-params (cdr params) (cdr vals) ds (aSub (car params) (interp (car vals) ds) new-ds))))
-
-
-;; Función auxiliar para agregar los valores en una lista de bindings al caché.
-;; append-to-cache: (list-of Binding) DefrdSub -> DefrdSub
-(define (append-to-cache bindings ds)
-  (if (empty? bindings)
+    ;;Funcion que nos permite agregar a al "cache de sustituciones" nuevos elementos.
+(define (def p a ds)
+  (if (empty? p)
       ds
-      (let ([bind (car bindings)])
-        (append-to-cache (cdr bindings) (aSub (binding-id bind) (interp (binding-value bind) ds) ds)))))
+      (aSub (car p) (car a) (def (cdr p) (cdr a) ds))))
+
+
+
+    ;;Nos ayuda a detectar si a un iF se le ha pasado un valor booleano o no.
+(define (erroriF-aux n)
+  (if (boolean? n)
+      n
+      (error "interp: Símbolo no esperado la condicional de if, no es un booleano")))
+
+     ;;Nos permite extraer el "cache de sustitucion" de un closure.
+(define (cs v)
+  (type-case AST-Value v
+    [closureV (p d e) e]
+    [else error "cs: Esto no debio pasar"]))
+
+    ;;Funcion auxiliar que nos permite interpretar las operaciones que devuelven numeros.
+(define (interp-op-num f lst)
+  (let ([n (length lst)])
+    (cond
+      [(= n 1) (numV (f (first lst)))]
+      [(= n 2) (numV (f (first lst) (second lst)))]
+      [else   (numV (apply f lst))])))
+
+      ;;Funcion auxiliar que nos permite interpretar las operaciones que devuelven bool.
+(define (interp-op-bool f lst)
+  (let ([n (length lst)])
+    (cond
+      [(= n 1) (boolV (f (first lst)))]
+      [(= n 2) (boolV (f (first lst) (second lst)))]
+      [else   (boolV (apply f lst))])))
