@@ -26,51 +26,29 @@
 ;; interp: AST Env → AST-Value
 (define (interp expr env)
      (type-case AST expr
-    [id (i) (strict (lookup i env))]
+    [id (i) (lookup i env)]
     [num (n) (numV n)]
-    [bool (b) (boolV b)]                                                    
+    [bool (b) (boolV b)]
     [op (p l) (let ([operands (for/list ([i l]) (cond
                                                   [(num? i) (numV (num-n i))]
                                                   [(AST? i) (interp i env)]
                                                   [else i]))])
                 (numV (apply p (map numV-n operands))))]
     [iF (cond then-val else-val)
-        (if (strict (interp cond env))
-            (interp then-val env)
-            (interp else-val env)
-          )]
-         ;;(let ([c (interp cond env)])
-           ;;(if (numV? c)
-             ;;  (if (= 0 (numV-n c))
-               ;;    (interp then-val env)
-                 ;;  (interp else-val env))
-               ;;(error 'interp "Símbolo no esperado la condicional de if, no es un número")))]
+         (let ([c (interp cond env)])
+           (if (numV? c)
+               (if (= 0 (numV-n c))
+                   (interp then-val env)
+                   (interp else-val env))
+               (error 'interp "Símbolo no esperado la condicional de if, no es un número")))]
     [fun (params body)
          (closureV params body env)]
     [app (func vals)
-         (let* ([fun-val (strict (interp func env))]
-                [symb-fun (closureV-param fun-val)]
-                [n-expr (exprV vals env)]
-                [rest-e (closureV-env fun-val)]
-                [sub-env (aSub symb-fun n-expr rest-e)]
-                [new-env (append sub-env env)])
-           (interp (closureV-body fun-val)
-                   new-env))
-           
-         ;;(let* ([f (interp func env)]
-           ;;     [env-new (closureV-env f)]
-             ;;   [new-ds (append-params (closureV-param f) vals env env-new)])
-               ;;(interp (closureV-body f) new-ds))]))
-         ]))
+         (let* ([f (interp func env)]
+                [env (closureV-env f)]
+                [new-ds (append-params (closureV-param f) vals env env)])
+               (interp (closureV-body f) new-ds))]))
 
-
-;; append
-(define (append env1 env2)
-    (cond
-      [(equal? (mtSub) env2) env1]
-      [else
-       (aSub (aSub-id env2) (aSub-value env2)
-             (append env1 (aSub-rest-env env2)))]))
 
 ;; Función auxiliar para agregar los valores de los parámetros de una función al caché.
 ;; Recibe una lista con los parámetros reales, una lista con los respectivos parámetros
