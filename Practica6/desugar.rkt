@@ -23,7 +23,8 @@
               n-expr
               )]
      [withS* (list-bin body) (desugar (reduce-withS* list-bin body))]
-     [recS (a b) ("J")]
+     [recS (list-bin body) (desugar
+                            (desugar-recS list-bin body))]
      [funS (list-param body) (currifica-funS list-param body)]
      [appS (fun-expr list-args) (asocia-appS fun-expr (reverse list-args))])
   )
@@ -75,6 +76,22 @@
     [(empty? idvalues) body]
     [else
      (withS (list (first idvalues)) (reduce-withS* (cdr idvalues) body))])
+  )
+
+;; Función auxiliar que
+;; desugar-recS: listof-binding SAST -> SAST
+(define (desugar-recS l body)
+  (cond
+    [(empty? l) body]
+    [else
+     (let* ([a (first l)]
+            [id-l (binding-id a)]
+            [value-l (binding-value a)])
+       (withS (list
+            (binding id-l (funS (list id-l) (Y value-l))))
+             (desugar-recS (cdr l) body))
+           )
+       ])
   )
 
 ;; Función auxiliar que currifica una expresión
