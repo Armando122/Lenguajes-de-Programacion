@@ -25,7 +25,8 @@
       ['zero? zero?]
       ['empty? empty?]
       ['car car]
-      ['cdr cdr]))
+      ['cdr cdr]
+      [else (idS s)]))
 
 ;; Análisis sintáctico
 ;; parse: s-expression → SAST
@@ -44,7 +45,10 @@
      [(list 'fun funValues body) (funS funValues (parse body))]
      [(cons (list 'fun funValues body) args) (appS (funS funValues (parse body)) (map parse args))]
      [(list 'rec fun body) (recS (crearBindings fun) (parse body))]
-     [(cons s args) (opS (elige s) (map parse args))]))
+     [(cons s args) (let ([x (elige s)])
+                      (if (SAST? x)
+                          (appS x (map parse args))
+                          (opS x (map parse args))))]))
 
 (define (crearCases l)
   (match l
