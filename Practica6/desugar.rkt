@@ -78,7 +78,8 @@
      (withS (list (first idvalues)) (reduce-withS* (cdr idvalues) body))])
   )
 
-;; Función auxiliar que
+;; Función auxiliar que codifica una lista de bindings
+;; y una expresión SAST en expresiones withS anidadas.
 ;; desugar-recS: listof-binding SAST -> SAST
 (define (desugar-recS l body)
   (cond
@@ -88,7 +89,8 @@
             [id-l (binding-id a)]
             [value-l (binding-value a)])
        (withS (list
-            (binding id-l (funS (list id-l) (Y value-l))))
+            (binding id-l (appS (idS 'Y) (list (funS (list id-l)
+                                value-l)))))
              (desugar-recS (cdr l) body))
            )
        ])
