@@ -40,7 +40,7 @@
      (let [(fun-val (strict (interp fun-expr env)))]
        (interp
         (closureV-body fun-val)
-        (crea-ambiente (closureV-param fun-val) args env)))]))
+        (aSub (closureV-param fun-val) (exprV args env) (closureV-env fun-val))))]))
 
 
 ;; Función auxiliar que creo un ambiente y empareja los parametros formales con los argumentos
