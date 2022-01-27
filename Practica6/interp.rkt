@@ -78,11 +78,10 @@
                                        [(? listV?) (listV-elems v)])) l))])
     (cond
       [(contiene-en-lista? (list + - * /
-                                 modulo expt add1 sub1
-                                 < > <= >= =
-                                 zero? min max expt) f)
+                                 modulo expt add1 sub1 min max expt) f)
        (numV result)]
-      [(contiene-en-lista? (list empty? car cdr) f) (listV result)]
+      [(contiene-en-lista? (list cdr) f) (listV result)]
+      [(contiene-en-lista? (list car) f) result]
       [else (boolV result)])))
 
 
